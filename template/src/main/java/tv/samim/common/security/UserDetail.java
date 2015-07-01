@@ -1,0 +1,109 @@
+package tv.samim.common.security;
+
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+/**
+ * @author mojtaba khallash and AhmadReza Nazemi
+ */
+public class UserDetail implements UserDetailsService,
+        AuthenticationUserDetailsService<UsernamePasswordAuthenticationToken> {
+    public static final String ANONYMOUS_USER = "anonymousUser";
+
+    public static boolean isLoggin(HttpServletRequest request) {
+        try {
+            String username = getCurrentUser(request).getUsername();
+            if (username.equals("") || username.equals(ANONYMOUS_USER))
+                return false;
+            else
+                return true;
+        } catch (ClassCastException cce) {
+           // Logger.e(cce);
+            return false;
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    public static boolean hasRole(HttpServletRequest request, String role) {
+        return getCurrentUser(request).getAuthorities().contains(new GrantedAuthorityImpl(role));
+    }
+
+    @Deprecated
+    public static CurrentUser getCurrentUser() {
+        Authentication auth = getAuthentication();
+        try {
+            return (CurrentUser) auth.getPrincipal();
+        } catch (java.lang.ClassCastException | NullPointerException e) {
+           // Logger.e(e);
+            return getAnonymousUser();
+        }
+    }
+
+    public static CurrentUser getCurrentUser(HttpServletRequest request) {
+        Authentication auth = getAuthentication();
+        if (auth == null)
+            return getAnonymousUser(request);
+        final Object principal = auth.getPrincipal();
+
+        if (principal instanceof CurrentUser)
+            return (CurrentUser) principal;
+        if (principal instanceof User) {
+            CurrentUser user = (CurrentUser) request.getSession().getAttribute("standaloneuser");
+            if (user == null) {
+                user = new CurrentUser(((User) principal).getUsername(), "******",
+                        true,
+                        "-1", "-1",
+                        "",
+                        LocaleContextHolder.getLocale(),
+                        ((User) principal).getAuthorities());
+                request.getSession().setAttribute("standaloneuser", user);
+            }
+            return user;
+        }
+        return getAnonymousUser(request);
+    }
+
+    private static Authentication getAuthentication() {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        return auth;
+    }
+
+    public static CurrentUser getAnonymousUser() {
+        return new CurrentUser(ANONYMOUS_USER, "******", false, "-1", "-1",
+                "",
+                LocaleContextHolder.getLocale(),
+                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+    }
+
+    public static CurrentUser getAnonymousUser(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object user = session.getAttribute(ANONYMOUS_USER);
+        if (user instanceof CurrentUser)
+            return (CurrentUser) user;
+        CurrentUser anonymousUser = getAnonymousUser();
+        session.setAttribute(ANONYMOUS_USER, anonymousUser);
+        session.setMaxInactiveInterval(300);
+        return anonymousUser;
+    }
+
+    @Override
+    public UserDetails loadUserDetails(UsernamePasswordAuthenticationToken arg0)
+            throws UsernameNotFoundException {
+        return null;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String arg0)
+            throws UsernameNotFoundException {
+        return null;
+    }
+}

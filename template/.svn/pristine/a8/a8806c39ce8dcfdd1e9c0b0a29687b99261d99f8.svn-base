@@ -1,0 +1,183 @@
+package tv.samim.template.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import tv.samim.common.Config;
+import tv.samim.common.communication.AuthenticationResult;
+import tv.samim.common.communication.Groups;
+import tv.samim.common.communication.Roles;
+import tv.samim.common.communication.WelcomeResponse;
+import tv.samim.common.security.CurrentUser;
+import tv.samim.common.security.UserDetail;
+import tv.samim.template.utility.CommunicationUtility;
+import tv.samim.template.utility.PathUtility;
+import tv.samim.tools.logging.Logger;
+import tv.samim.tools.url.UrlCaller;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * @author mojtaba khallash
+ */
+@Controller
+public class AuthenticationController {
+    @Autowired
+    SessionLocaleResolver localeResolver;
+
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public String loginGet(HttpServletResponse response, HttpServletRequest request)
+            throws IOException {
+        if (!Config.i().isStandalone()) {
+            CurrentUser currentUser = UserDetail.getCurrentUser(request);
+            if (currentUser.isAuthenticated()) {
+                return "redirect:/home";
+            }
+            else {
+                String redirectUrl = PathUtility.buildRedirectUrlToCurrentPath(request, response);
+                response.sendRedirect(Config.i().getWelcomeRoot() + "login.jsp?redirect=" + redirectUrl);
+                return null;
+            }
+        }
+        return "login";
+    }
+
+    @RequestMapping(value = "/authentication", method = RequestMethod.GET)
+    public void login(HttpServletRequest request,
+                      HttpServletResponse response,
+                      Map<String, Object> model) throws IOException {
+        String serverId = request.getParameter("serverId");
+        String sessionId = request.getParameter("sid");
+        String home = request.getParameter("home");
+        String lang = request.getParameter("lang");
+        localeResolver.setLocale(request, response, new Locale(lang));
+        if (home != null) {
+            home = URLDecoder.decode(home, "UTF-8");
+        } else {
+            home = Config.i().getWelcomeRoot();
+        }
+        if (sessionId != null && sessionId.length() > 0) {
+            tv.samim.tools.url.UrlCaller.jsonFix = true;
+            tv.samim.tools.url.UrlAnswer<AuthenticationResult> res = tv.samim.tools.url.UrlCaller
+                    .call(AuthenticationResult.class,
+                            UrlCaller.ResponseType.json, sessionId, home
+                                    + "/authentication");
+
+            if (res != null && res.getResult().getStatus().equals("fail")) {
+                model.put("showMsg", true);
+                model.put("message", res.getResult().getText());// -can not
+                // welcome
+                model.put("status", "error");
+                response.sendRedirect(PathUtility.buildRedirectUrlToHomePage(request, response));
+                return;
+            }
+
+            if (res != null && res.getResult().isAthenticate()) {
+                List<Groups> authority = res.getResult().getGroups();
+                String userRoles = "ROLE_USER";
+                if (authority != null) {
+                    for (Groups groups : authority) {
+                        List<Roles> roles = groups.getRoles();
+                        if (roles != null)
+                            for (Roles rol : roles) {
+                                userRoles = rol.getName() + "," + userRoles;
+                            }
+                    }
+                }
+                List<GrantedAuthority> auth = AuthorityUtils
+                        .commaSeparatedStringToAuthorityList(userRoles);
+                CurrentUser u = new CurrentUser(res.getResult().getUsername(), "******",
+                        true, serverId, sessionId,
+                        home,
+                        localeResolver.resolveLocale(request),
+                        auth);
+                UsernamePasswordAuthenticationToken loggedIn = new UsernamePasswordAuthenticationToken(
+                        u, u.getPassword(), u.getAuthorities());
+                loggedIn.setDetails(u);
+                SecurityContextHolder.getContext().setAuthentication(loggedIn);
+
+                response.sendRedirect(PathUtility.buildRedirectUrlToHomePage(request, response));
+                return;
+            }
+
+            response.sendRedirect(PathUtility.buildRedirectUrlToHomePage(
+                    request, response));
+            return;
+        }
+        response.sendRedirect(Config.i().getWelcomeRoot() + "login.jsp");
+
+    }
+
+    @RequestMapping(value = "/signout", method = RequestMethod.GET)
+    public String logout(HttpServletRequest request,
+                         HttpServletResponse response, Model model) {
+        String result;
+        CurrentUser currentUser = UserDetail.getCurrentUser(request);
+        String username = currentUser.getUsername();
+        Logger.normal(username + "\t try to logout");
+        if (!Config.i().isStandalone()) {
+            try {
+                result = CommunicationUtility.sendCommand(
+                        "signout",
+                        "",
+                        new String[]{"sid"},
+                        new String[]{URLEncoder.encode(
+                                currentUser.getSessionId(), "UTF-8")});
+                ObjectMapper om = new ObjectMapper();
+                WelcomeResponse ro;
+                try {
+                    ro = om.readValue(result, WelcomeResponse.class);
+                    model.addAttribute("showMsg", true);
+                    model.addAttribute("status", ro.getStatus());
+                    model.addAttribute("message", ro.getText());
+                } catch (IOException | NullPointerException e) {
+                    model.addAttribute("showMsg", true);
+                    model.addAttribute("status", "error");
+                    model.addAttribute("message", e.getMessage());
+                    Logger.urgent("welcome logout not respond");
+                    Logger.e(e);
+                }
+
+            } catch (UnsupportedEncodingException e) {
+                Logger.e(e);
+            }
+        }
+        org.springframework.security.core.Authentication auth = SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth != null) {
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+        SecurityContextHolder.getContext().setAuthentication(null);
+        request.getSession().invalidate();
+        try {
+            response.sendRedirect(PathUtility.buildRedirectUrlToHomePage(
+                    request, response));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "home";
+        }
+        return null;
+    }
+
+    @RequestMapping(value = "/access_denied", method = RequestMethod.GET)
+    public String accessDenied(Model model) {
+        return "access_denied";
+    }
+}

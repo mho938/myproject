@@ -1,0 +1,99 @@
+# -- Settings --#
+direction=ltr
+application.name =${project.name}
+application.version=${project.version}
+date.format.global=yyyy/MM/dd
+date.format.moment=jYYYY/jMM/jDD
+datetime.format.global=yyyy/MM/dd HH:mm:ss
+datetime.format.moment=jYYYY/jMM/jDD HH:mm:ss
+
+# -- Label --#
+label.title=عنوان پروژه
+label.samim=شرکت مهندسی صمیم رایانه
+label.copyright=1394
+label.name=نام
+label.noItemSelected=موردی انتخاب نشده است
+label.successful=عملیات با موفقیت انجام شد.
+
+# -- Error --#
+error.req.username=نام کاربری باید وارد شود.
+error.req.password=رمز ورود باید وارد شود.
+error.req.role=سطح دسترسی باید وارد شود.
+error.req.pageCount=تعداد صفحات مجاز باید وارد شود.
+error.req.name=نام باید وارد شود.
+error.req.contextPath=آدرس سایت باید باید وارد شود.
+error.req.title=عنوان سایت باید وارد شود.
+error.login.fail=نام کاربری یا رمز ورود اشتباه است.
+error.page.notFound=صفحه مورد نظر یافت نشد.
+error.security.unauthorized=باید مجددا به سیستم وارد شوید 
+error.upload.maxSize= اندازه فایل بیش از 512 مگابایت است
+error.upload.badFile=لطفا یک فایل مناسب انتخاب کنید
+error.upload.global=خطا در بارگزاری فایل
+
+# -- Kendo --#
+kendo.pageable.empty=موردی یافت نشد
+kendo.pageable.page=صفحه
+kendo.pageable.next_page=صفحه قبل
+kendo.pageable.prev_page=صفحه بعد
+kendo.pageable.first_page=آخرین صفحه
+kendo.pageable.last_page=اولین صفحه
+kendo.pageable.items=آیتم در هر صفحه
+kendo.pageable.refresh=بارگذاری مجدد
+kendo.groupable.empty=جهت گروه بندی، هدر ستون را کشیده و اینجا رها کنید.
+kendo.filter.info=فیلتر بر اساس:
+kendo.filter.filter=فیلتر
+kendo.filter.clear=پاک
+kendo.filter.and=و
+kendo.filter.or=یا
+kendo.filter.selectValue=یک مورد را انتخاب کنید
+kendo.filter.operator=عملگر
+kendo.filter.cancel=انصراف
+kendo.filter.eq=مساوی با
+kendo.filter.neq=نا مساوی با
+kendo.filter.gte=بزرگتر یا مساوی
+kendo.filter.gt=بزرگتر از
+kendo.filter.lte=کوچکتر یا مساوی
+kendo.filter.lt=کوچکتر از
+kendo.filter.startswith=شروع با
+kendo.filter.endswith=ختم به
+kendo.filter.contains=حاوی
+kendo.filter.doesnotcontain=عدم وجود
+kendo.editable.confirm=آيا اطمینان دارید که قصد حذف رکورد انتخاب شده را دارید?
+kendo.editable.cancel=انصراف
+kendo.editable.update=ذخیره
+kendo.alert.required=برای {0} باید مقداری وارد شود.
+kendo.upload.cancel=انصراف
+kendo.upload.dropFilesHere=برای آپلود فایل خود را اینجا رها کنید.
+kendo.upload.remove=حذف
+kendo.upload.retry=تلاش مجدد
+kendo.upload.select=انتخاب فایل
+kendo.upload.statusFailed=ناموفق
+kendo.upload.statusUploaded=انجام شد
+kendo.upload.statusUploading=در حال آپلود فایل
+kendo.upload.uploadSelectedFiles=آپلود فایل‌ها
+kendo.upload.headerStatusUploading=در حال آپلود
+kendo.upload.headerStatusUploaded=آپلود شده
+kendo.upload.fileName=نام فایل
+kendo.upload.fileSize=اندازه
+kendo.upload.fileUnit=بایت
+
+# -- Button --#
+button.logout=خروج
+button.changePass=تغییر رمز ورود
+button.add=افزودن
+button.edit=ویرایش
+button.remove=حذف
+
+# -- About --#
+about.title=درباره ما
+about.body=شركت مهندسي تحقيق و توسعه صميم رايانه بوسيله تعدادي از متخصصين ايراني در بهار سال 1379 با هدف تحقيق و توليد در زمينه‌هاي الكترونيك، مخابرات و IT تاسيس گرديده است. اين شركت با بكارگيري مناسب پتانسيل‌هاي علمي كشور و نيز فراهم آوردن تجهيزات آزمايشگاهي مورد نياز، موفق به طراحي و توليد بيش از 70 محصول High Tech در زمينه‌هاي مخابرات، پخش تلويزيوني (Broadcasting) و ويدئو پيشرفته، پردازش تصوير و سيگنال شده است و هم‌اكنون نيز چندين پروژه‌ تحقيقاتي و توليدي را در دست انجام دارد. محصولات شرکت در سالهای گذشته در بیش از 50 شبکه تلویزیونی داخلی و خارجی مورد استفاده قرار گرفته است. 
+
+# -- Home --#
+home.title=صفحه اصلی
+home.noPages=در حال حاضر صفحه‌ای ایجاد نشده است.
+
+# -- Login --#
+login.title=صفحه ورود
+login.username=نام کاربری
+login.password=رمز ورود
+login.button=ورود

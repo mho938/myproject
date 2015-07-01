@@ -1,0 +1,70 @@
+package tv.samim.common;
+
+import tv.samim.tools.config.Configurator;
+import tv.samim.tools.logging.LogLevel;
+import tv.samim.tools.logging.Logger;
+
+import java.io.IOException;
+
+/**
+ * @author mojtaba khallash
+ */
+public class Config {
+
+    private static Config instance;
+    public static Config i() {
+        return Config.instance;
+    }
+    private static Configurator configurator;
+    public static void init(String appName, String appVersion) {
+        try {
+            Logger.n(String.format("Application Name: %s (%s)", appName, appVersion));
+            configurator = new Configurator(appName, appVersion);
+            instance = new Config();
+            configurator.fillConfigObject(instance);
+            configurator.save();
+        } catch (IOException | IllegalAccessException e){
+            Logger.e(e);
+        }
+    }
+
+
+
+    private String welcomeRoot = "http://10.1.31.227:8095/welcome/";
+    public String getWelcomeRoot() {
+        return this.welcomeRoot;
+    }
+    public void setWelcomeRoot(String root) {
+        Configurator cf;
+        if (!root.endsWith("/"))
+            root += "/";
+        if (root.equals(""))
+            return;
+        try {
+            configurator.putString("Config.welcomeRoot", root);
+            configurator.save();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        this.welcomeRoot = root;
+    }
+
+
+    private static boolean standalone = false;
+    public boolean isStandalone() {
+        return standalone;
+    }
+
+
+    private boolean showLogViewer = false;
+    public boolean isShowLogViewer() {
+        return this.showLogViewer;
+    }
+
+
+    // disable, urgent, normal, many, massive, all
+    private String logLevel = LogLevel.all.name();
+    public LogLevel getLogLevel() { return LogLevel.valueOf(this.logLevel); }
+}
